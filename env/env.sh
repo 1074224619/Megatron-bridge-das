@@ -1,6 +1,10 @@
-# These variables should not be modified.
 CURRENT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 MEGATRON_PATH=$( dirname $( dirname ${CURRENT_DIR}))
+
+# register model on rocm platform
+cp ${MEGATRON_PATH}/hcu_megatron_bridge/src/hcu_megatron/bridge/recipes/__init__.py ${MEGATRON_PATH}/3rdparty/Megatron-Bridge/src/megatron/bridge/recipes
+
+# These variables should not be modified.
 export PYTHONWARNINGS=ignore
 export TOKENIZERS_PARALLELISM=false
 export TORCH_CPP_LOG_LEVEL=fatal
@@ -14,7 +18,7 @@ export NCCL_MIN_NCHANNELS=32
 export NCCL_NET_GDR_LEVEL=4
 export NCCL_NET_GDR_READ=1
 export RCCL_SDMA_COPY_ENABLE=0
-export PYTHONPATH=${MEGATRON_PATH}/3rdparty/Megatron-Bridge/src:${MEGATRON_PATH}/3rdparty/Megatron-Bridge/3rdparty/Megatron-LM:${PYTHONPATH}
+export PYTHONPATH=${MEGATRON_PATH}/hcu_megatron_bridge/src:${MEGATRON_PATH}/3rdparty/Megatron-Bridge/src:${MEGATRON_PATH}/3rdparty/Megatron-Bridge/3rdparty/Megatron-LM:${PYTHONPATH}
 export TRITON_HOME=/tmp
 export ROCSHMEM_MAX_NUM_CONTEXTS=48
 export ROCSHMEM_HEAP_SIZE=2684354560

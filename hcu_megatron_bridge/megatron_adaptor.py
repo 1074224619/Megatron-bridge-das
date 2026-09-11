@@ -7,7 +7,7 @@ from megatron.training import get_args
 
 from .features_manager import ADAPTOR_FEATURES
 from .patch_utils import MegatronPatchesManager
-from hcu_megatron.training.arguments import destroy_adaptor_args, get_adaptor_args
+from .training.arguments import destroy_adaptor_args, get_adaptor_args
 
 
 def patch_features():
