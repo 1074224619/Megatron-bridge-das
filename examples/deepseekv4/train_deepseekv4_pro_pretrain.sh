@@ -10,16 +10,32 @@ export NVTE_USE_HIPBLASLT_GROUPEDGEMM=1
 export LOCAL_HF_PATH=/path/to/DeepSeek-V4-Pro
 
 # ===================================== Launch Mode =====================================
-MODE=${1:-}
-HOSTFILE=${2:-}
-NODES=${3:-}
+RECIPE=${1:-}
+MODE=${2:-}
+HOSTFILE=${3:-}
+NODES=${4:-}
 PROFILING=""
-RECIPE=deepseek_v4_pro_pretrain_bw1000_bf16_config # you can use deepseek_v4_pro_pretrain_bw1000_bf16_test_config for test on 2 nodes
 
 RED="\033[31m"
+YELLOW="\033[33m"
 RESET="\033[0m"
-if [[ -z ${MODE} ]]; then
-    echo -e "${RED}ERROR: missing mode argument. Use 'dryrun' or 'train'.${RESET}"
+
+# Discover supported recipes from the deepseek module
+SUPPORTED_RECIPES=(
+    deepseek_v4_pro_pretrain_bw1000_bf16_config
+    deepseek_v4_pro_pretrain_bw1100_bf16_config
+    deepseek_v4_pro_pretrain_16gpu_bw1000_bf16_test_config
+    deepseek_v4_pro_pretrain_8gpu_bw1100_bf16_test_config
+)
+
+# Validate RECIPE argument
+if [[ -z ${RECIPE} ]]; then
+    echo -e "${RED}ERROR: missing recipe argument.${RESET}"
+    echo -e "${YELLOW}Supported recipes:${RESET}"
+    printf "  - %s\n" "${SUPPORTED_RECIPES[@]}"
+    echo ""
+    echo "Usage: $0 <RECIPE> <MODE> [HOSTFILE] [NODES]"
+    echo "  MODE: dryrun | train"
     exit 1
 fi
 
@@ -79,27 +95,44 @@ OPTIMIZER_CONFIG=(
     optimizer.optimizer=muon
 )
 
-# ===================================== Model Config =====================================
-TP=1
-PP=2
-EP=4
-ETP=1
-CP=1
+# ===================================== Parallel Config =====================================
+if [[ $RECIPE == *test* ]];then
+    TP=1
+    PP=2
+    EP=4
+    ETP=1
+    CP=1
 
+    PARALLEL_CONFIG=(
+        model.tensor_model_parallel_size=${TP}
+        model.pipeline_model_parallel_size=${PP}
+        model.expert_model_parallel_size=${EP}
+        model.expert_tensor_parallel_size=${ETP}
+        model.context_parallel_size=${CP}
+    )
+else
+    TP=1
+    PP=8
+    EP=64
+    ETP=1
+    CP=1
+
+    PARALLEL_CONFIG=(
+        model.tensor_model_parallel_size=${TP}
+        model.pipeline_model_parallel_size=${PP}
+        model.expert_model_parallel_size=${EP}
+        model.expert_tensor_parallel_size=${ETP}
+        model.context_parallel_size=${CP}
+    )
+fi
+
+# ===================================== Model Config =====================================
 MODEL_CONFIG=(
     model.seq_length=${SEQ_LENGTH}
-    model.tensor_model_parallel_size=${TP}
-    model.pipeline_model_parallel_size=${PP}
-    model.expert_model_parallel_size=${EP}
-    model.expert_tensor_parallel_size=${ETP}
-    model.context_parallel_size=${CP}
     model.sequence_parallel=true
     model.overlap_p2p_comm=true
     model.cross_entropy_loss_fusion=false
     model.cross_entropy_fusion_impl=native
-    model.recompute_granularity=null
-    model.recompute_method=null
-    model.recompute_num_layers=null
     model.moe_router_force_load_balancing=true
     model.moe_router_fusion=true
     model.moe_permute_fusion=true
@@ -169,6 +202,7 @@ case "${MODE}" in
             ${DATA_CONFIG[@]} \
             ${TRAIN_CONFIG[@]} \
             ${OPTIMIZER_CONFIG[@]} \
+            ${PARALLEL_CONFIG[@]} \
             ${MODEL_CONFIG[@]} \
             ${CKPT_AND_LOGGING_CONFIG[@]}
         echo "======================================"
@@ -190,6 +224,7 @@ case "${MODE}" in
             ${DATA_CONFIG[@]}
             ${TRAIN_CONFIG[@]}
             ${OPTIMIZER_CONFIG[@]}
+            ${PARALLEL_CONFIG[@]}
             ${MODEL_CONFIG[@]}
             ${CKPT_AND_LOGGING_CONFIG[@]}
         )

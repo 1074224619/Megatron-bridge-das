@@ -121,7 +121,7 @@ def deepseek_v4_pro_pretrain_bw1000_bf16_config() -> ConfigContainer:
     return cfg
 
 
-def deepseek_v4_pro_pretrain_bw1000_bf16_test_config() -> ConfigContainer:
+def deepseek_v4_pro_pretrain_16gpu_bw1000_bf16_test_config() -> ConfigContainer:
     """Return the DeepSeek-V4-Pro BW1000 pre-training base config on one node.
 
     DeepSeek-V4 still requires a compatible Megatron-Core development commit;
@@ -174,8 +174,8 @@ def deepseek_v4_pro_pretrain_bw1000_bf16_test_config() -> ConfigContainer:
     cfg.model.cross_entropy_loss_fusion = True
     cfg.model.cross_entropy_fusion_impl = "te"
 
-    cfg.model.recompute_granularity = "selective"
-    cfg.model.recompute_modules = ["moe_act", "mhc"]
+    cfg.model.recompute_granularity = None
+    cfg.model.recompute_modules = None
     cfg.model.recompute_method = None
     cfg.model.recompute_num_layers = None
     cfg.model.fine_grained_activation_offloading = False
