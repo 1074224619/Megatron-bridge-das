@@ -72,10 +72,9 @@ def profiler_annotate(message: Optional[Union[str, Callable]] = None) -> Callabl
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*func_args, **func_kwargs):
-            from megatron.training.global_vars import get_args
+            from torch.autograd import profiler
 
-            megatron_args = get_args()
-            if not getattr(megatron_args, "use_pytorch_profiler", False):
+            if not getattr(profiler, "_is_profiler_enabled", False):
                 return func(*func_args, **func_kwargs)
             
             profile_name = profile_message if profile_message is not None else func.__name__

@@ -12,11 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import shutil
-import sys
 from argparse import ArgumentParser
-from importlib.util import find_spec
 
 from ..feature import AbstractFeature
 
@@ -32,4 +28,16 @@ class MegatronBasicFeature(AbstractFeature):
 
 
     def register_patches(self, patch_manager, args):
-        pass
+        
+        # load model from a local path if LOCAL_HF_PATH is set
+        from hcu_megatron.bridge.models.conversion.auto_bridge import from_hf_pretrained_wrapper
+        
+        patch_manager.register_patch('megatron.bridge.models.conversion.auto_bridge.AutoBridge.from_hf_pretrained',
+                                    remove_origin_wrappers=True)
+        patch_manager.register_patch('megatron.bridge.models.conversion.auto_bridge.AutoBridge.from_hf_pretrained',
+                                    from_hf_pretrained_wrapper,
+                                    apply_wrapper=True)
+        patch_manager.register_patch('megatron.bridge.models.conversion.auto_bridge.AutoBridge.from_hf_pretrained',
+                                    classmethod,
+                                    apply_wrapper=True)
+

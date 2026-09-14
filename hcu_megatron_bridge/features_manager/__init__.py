@@ -15,9 +15,15 @@
 
 from .basic.megatron_basic import MegatronBasicFeature
 from .deepseekv4.deepseekv4_feature import DeepSeekV4Feature
+from .profiler.profiler_feature import ProfilerFeature
+from .transformer.dsa_feature import DSAFeature
+from .transformer.hyper_connection_feature import HyperConnectionFeature
 
 
 ADAPTOR_FEATURES = [
     MegatronBasicFeature(),
     DeepSeekV4Feature(),
+    ProfilerFeature(),
+    DSAFeature(),
+    HyperConnectionFeature(),
 ]

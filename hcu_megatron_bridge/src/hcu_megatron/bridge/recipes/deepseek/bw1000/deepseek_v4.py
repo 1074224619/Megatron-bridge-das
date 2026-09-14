@@ -136,9 +136,6 @@ def deepseek_v4_pro_pretrain_bw1000_bf16_test_config() -> ConfigContainer:
     # ========== one node test config ==========
     cfg.model.num_layers = 4
     cfg.model.mtp_num_layers = None
-    cfg.model.num_attention_heads = 128
-    cfg.model.hidden_size = 7168
-    cfg.model.moe_ffn_hidden_size = 3072
     cfg.model.num_moe_experts = 4
     cfg.model.moe_router_topk = 2
     cfg.model.moe_layer_freq = 1
