@@ -26,7 +26,8 @@ RESET="\033[0m"
 
 # Discover supported recipes from the qwen35 module
 SUPPORTED_RECIPES=(
-    qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config
+    qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config,
+    qwen35_text_9b_pretrain_8gpu_bw1000_bf16_config
 )
 
 # Validate RECIPE argument
@@ -94,9 +95,9 @@ OPTIMIZER_CONFIG=(
 )
 
 # ===================================== Parallel Config =====================================
-TP="${TENSOR_PARALLEL:-1}"
-PP="${PIPELINE_PARALLEL:-4}"
-EP="${EXPERT_PARALLEL:-8}"
+TP="${TENSOR_PARALLEL:-2}"
+PP="${PIPELINE_PARALLEL:-1}"
+EP="${EXPERT_PARALLEL:-1}"
 ETP="${EXPERT_TENSOR_PARALLEL:-1}"
 CP="${CONTEXT_PARALLEL:-1}"
 
@@ -152,7 +153,7 @@ PROFILING_CONFIG=(
 # ===================================== Summary =====================================
 mkdir -p "${SAVE_DIR}/train_logs"
 echo "======================================"
-echo -e "${YELLOW}Qwen3.5-35B-A3B text-only pretrain${RESET}"
+echo -e "${YELLOW} ${RECIPE} ${RESET}"
 echo "======================================"
 echo "Mode:        ${MODE}"
 echo "Profiling:   ${PROFILING:-off}"
@@ -225,6 +226,7 @@ case "${MODE}" in
         fi
 
         if (( NNODES == 1 )); then
+            source /opt/dtk/env.sh
             source ${MEGATRON_PATH}/env/env.sh
             torchrun ${TORCHRUN_ARGS[@]} ${RECIPE_ARGS[@]} 2>&1 | tee "${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log"
         else
@@ -234,6 +236,7 @@ case "${MODE}" in
             # remote host, where mpirun sets OMPI_COMM_WORLD_RANK.
             HOSTFILE_SLOTS="${CURRENT_DIR}/hostfile_slots"
             grep -ve '^[[:space:]]*$' ${HOSTFILE} | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > ${HOSTFILE_SLOTS}
+            cat ${HOSTFILE_SLOTS}
 
             TORCHRUN_QUOTED="$(printf '%q ' "${TORCHRUN_ARGS[@]}")"
             RECIPE_QUOTED="$(printf '%q ' "${RECIPE_ARGS[@]}")"
