@@ -303,6 +303,7 @@ case "${MODE}" in
         fi
 
         if (( NNODES == 1 )); then
+            source ${MEGATRON_PATH}/env/env.sh
             torchrun ${TORCHRUN_ARGS[@]} ${RECIPE_ARGS[@]} 2>&1 | tee "${SAVE_DIR}/sft_logs/mpi_$(date +%F-%H%M).log"
         else
             TORCHRUN_QUOTED="$(printf '%q ' "${TORCHRUN_ARGS[@]}")"
