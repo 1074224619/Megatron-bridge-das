@@ -1,3 +1,4 @@
+# Copyright (c) 2026, NVIDIA CORPORATION.  All rights reserved.
 # Copyright (c) 2026 Hygon Information Technology Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""BW1000 recipes for Qwen3.5-VL models."""
-
-from hcu_megatron.bridge.recipes.qwen35_vl.bw1000.qwen35_vl import (
+from .qwen35 import (
+    qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config,
+)
+from .qwen35_vl import (
     qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config,
     qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_mock_config,
     qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_config,
@@ -22,13 +24,20 @@ from hcu_megatron.bridge.recipes.qwen35_vl.bw1000.qwen35_vl import (
     qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_config,
     qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_mock_config,
 )
+from .qwen38 import (
+    qwen38_text_2_4t_pretrain_bw1000_bf16_config,
+    qwen38_text_2_4t_pretrain_128gpu_bw1000_bf16_test_config,
+)
 
 
 __all__ = [
+    "qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config",
     "qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_mock_config",
     "qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_mock_config",
     "qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_mock_config",
+    "qwen38_text_2_4t_pretrain_bw1000_bf16_config",
+    "qwen38_text_2_4t_pretrain_128gpu_bw1000_bf16_test_config",
 ]

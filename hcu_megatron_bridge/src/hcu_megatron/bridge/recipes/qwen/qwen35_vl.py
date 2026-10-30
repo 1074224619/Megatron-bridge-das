@@ -17,11 +17,21 @@
 
 from __future__ import annotations
 
-from hcu_megatron.bridge.recipes.qwen35.bw1000.qwen35 import (
-    qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config,
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen35_vl import (
+    qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config,
+    qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_mock_config,
+    qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_config,
+    qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_mock_config,
+    qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_config,
+    qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_mock_config,
 )
 
 
 __all__ = [
-    "qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config",
+    "qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config",
+    "qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_mock_config",
+    "qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_config",
+    "qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_mock_config",
+    "qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_config",
+    "qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_mock_config",
 ]

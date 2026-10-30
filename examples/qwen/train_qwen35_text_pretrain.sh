@@ -8,7 +8,7 @@ CURRENT_DIR=$( cd $( dirname $0 ) && pwd )
 MEGATRON_PATH=$( dirname $( dirname ${CURRENT_DIR}))
 
 # default env
-export LOCAL_HF_PATH=/path/to/Qwen35_35B_A3B
+export LOCAL_HF_PATH=/path/to/Qwen3.5-35B-A3B
 export NVTE_USE_HIPBLASLT_GROUPEDGEMM=1
 export GPU_MAX_HW_QUEUES=4
 

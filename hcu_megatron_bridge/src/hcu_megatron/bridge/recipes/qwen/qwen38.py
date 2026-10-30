@@ -1,3 +1,4 @@
+# Copyright (c) 2026, NVIDIA CORPORATION.  All rights reserved.
 # Copyright (c) 2026 Hygon Information Technology Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,16 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# ruff: noqa: F401
+"""Compatibility aliases for legacy recipe names."""
 
-"""BW1000 recipes for Qwen35 models."""
+from __future__ import annotations
 
-
-from hcu_megatron.bridge.recipes.qwen35.bw1000.qwen35 import (
-    qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config,
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen38 import (
+    qwen38_text_2_4t_pretrain_bw1000_bf16_config,
+    qwen38_text_2_4t_pretrain_128gpu_bw1000_bf16_test_config,
 )
 
 
 __all__ = [
-    "qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config",
+    "qwen38_text_2_4t_pretrain_bw1000_bf16_config",
+    "qwen38_text_2_4t_pretrain_128gpu_bw1000_bf16_test_config",
 ]
-

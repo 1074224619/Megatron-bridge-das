@@ -12,13 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# ruff: noqa: F401
+"""Compatibility aliases for legacy recipe names."""
 
-"""Qwen35 recipe exports.
+from __future__ import annotations
 
-This module re-exports AutoBridge-based pretrain config helpers for Qwen35.
-"""
-
-from .qwen35 import (
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen35 import (
     qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config,
 )
 

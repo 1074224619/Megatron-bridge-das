@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Qwen3.5-VL recipe exports.
 
-This module re-exports AutoBridge-based pretrain config helpers for the dense
-Qwen3.5-VL models (2B, 4B, 9B).
-"""
+"""BW1000 recipes for Qwen models."""
 
-from hcu_megatron.bridge.recipes.qwen35_vl.bw1000.qwen35_vl import (
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen35 import (
+    qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config,
+)
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen35_vl import (
     qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config,
     qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_mock_config,
     qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_config,
@@ -27,13 +27,20 @@ from hcu_megatron.bridge.recipes.qwen35_vl.bw1000.qwen35_vl import (
     qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_config,
     qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_mock_config,
 )
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen38 import (
+    qwen38_text_2_4t_pretrain_bw1000_bf16_config,
+    qwen38_text_2_4t_pretrain_128gpu_bw1000_bf16_test_config,
+)
 
 
 __all__ = [
+    "qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config",
     "qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_mock_config",
     "qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_mock_config",
     "qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_vl_9b_pretrain_8gpu_bw1000_bf16_mock_config",
+    "qwen38_text_2_4t_pretrain_bw1000_bf16_config",
+    "qwen38_text_2_4t_pretrain_128gpu_bw1000_bf16_test_config",
 ]

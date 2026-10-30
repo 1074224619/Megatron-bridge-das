@@ -27,7 +27,7 @@ from megatron.bridge.training.config import ConfigContainer
 from megatron.bridge.training.mixed_precision import bf16_mixed
 
 
-_QWEN38_2_4T_A95B_BASE = "Qwen/qwen3.8-2.4T-A95B"
+_QWEN38_2_4T_A95B_BASE = "Qwen/Qwen3.8-2.4T-A95B"
 
 
 def qwen38_text_2_4t_pretrain_bw1000_bf16_config() -> ConfigContainer:
