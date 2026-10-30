@@ -5,6 +5,7 @@ CURRENT_DIR=$( cd $( dirname $0 ) && pwd )
 MEGATRON_PATH=$( dirname $( dirname ${CURRENT_DIR}))
 
 # default env
+PORT="" # Set the SSH port by running /usr/sbin/sshd -p <port> inside the Docker container on each node. For example: /usr/sbin/sshd -p 12345
 DATA_PATH=/path/to/CongliuChinese-DeepSeek-R1-Distill-data-110k-SFT
 export LOCAL_HF_PATH=/path/to/DeepSeek-V4-Flash-0731
 export LOCAL_CORE_PATH=/path/to/DeepSeek-V4-Flash-0731-core
@@ -40,7 +41,7 @@ fi
 
 # ===================================== Multi-node Topology =====================================
 GPUS=${GPUS:-8}
-PORT=${PORT:-12333}
+PORT=${PORT:-12345}
 MASTER_ADDR=127.0.0.1
 MASTER_PORT=29501
 

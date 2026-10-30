@@ -81,6 +81,7 @@ modelscope download --model MiniMax/MiniMax-M3 --local_dir ./MiniMax-M3
 进入`/workspace/Megatron-bridge-das/examples/minimax`，根据上述文件路径，填写`train_minimax_m3_pretrain.sh`文件中如下变量：
 
 ```shell
+PORT="" # Set the SSH port by running /usr/sbin/sshd -p <port> inside the Docker container on each node. For example: /usr/sbin/sshd -p 12345
 export LOCAL_HF_PATH=/path/to/MiniMax-M3
 ```
 

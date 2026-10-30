@@ -81,6 +81,7 @@ modelscope download --model Qwen/Qwen3.8-2.4T-A95B --local_dir ./Qwen3.8-2.4T-A9
 进入`/workspace/Megatron-bridge-das/examples/qwen`，根据上述文件路径，填写`train_qwen38_2.4t_pretrain.sh`文件中如下变量：
 
 ```shell
+PORT="" # Set the SSH port by running /usr/sbin/sshd -p <port> inside the Docker container on each node. For example: /usr/sbin/sshd -p 12345
 export LOCAL_HF_PATH=/path/to/Qwen3.8-2.4T-A95B
 ```
 

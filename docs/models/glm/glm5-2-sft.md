@@ -113,6 +113,7 @@ modelscope download --model ZhipuAI/GLM-5.2 --local_dir ./GLM-5.2
 进入`/workspace/Megatron-bridge-das/examples/glm`，根据上述文件路径，填写`train_glm52_sft.sh`文件中如下变量：
 
 ```shell
+PORT="" # Set the SSH port by running /usr/sbin/sshd -p <port> inside the Docker container on each node. For example: /usr/sbin/sshd -p 12345
 DATA_PATH=/path/to/tulu-3-sft-mixture/data
 export LOCAL_HF_PATH=/path/to/GLM-5.2
 ```

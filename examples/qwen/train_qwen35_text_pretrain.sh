@@ -8,6 +8,7 @@ CURRENT_DIR=$( cd $( dirname $0 ) && pwd )
 MEGATRON_PATH=$( dirname $( dirname ${CURRENT_DIR}))
 
 # default env
+PORT="" # Set the SSH port by running /usr/sbin/sshd -p <port> inside the Docker container on each node. For example: /usr/sbin/sshd -p 12345
 export LOCAL_HF_PATH=/path/to/Qwen3.5-35B-A3B
 export NVTE_USE_HIPBLASLT_GROUPEDGEMM=1
 export GPU_MAX_HW_QUEUES=4
@@ -41,7 +42,7 @@ fi
 
 # ===================================== Multi-node Topology =====================================
 GPUS="${GPUS:-8}"
-PORT="${PORT:-11453}"
+PORT="${PORT:-12345}"
 MASTER_ADDR=127.0.0.1
 MASTER_PORT=29508
 

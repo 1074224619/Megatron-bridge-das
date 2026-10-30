@@ -104,6 +104,7 @@ modelscope download --model deepseek-ai/DeepSeek-V4-Flash-0731 --local_dir ./Dee
 进入`/workspace/Megatron-bridge-das/examples/deepseek`，根据上述文件路径，填写`train_deepseekv4_flash_sft.sh`文件中如下变量：
 
 ```shell
+PORT="" # Set the SSH port by running /usr/sbin/sshd -p <port> inside the Docker container on each node. For example: /usr/sbin/sshd -p 12345
 DATA_PATH=/path/to/CongliuChinese-DeepSeek-R1-Distill-data-110k-SFT
 export LOCAL_HF_PATH=/path/to/DeepSeek-V4-Flash-0731
 export LOCAL_CORE_PATH=/path/to/DeepSeek-V4-Flash-0731-core  # 执行脚本中会自动转换权重，此处只给路径即可
