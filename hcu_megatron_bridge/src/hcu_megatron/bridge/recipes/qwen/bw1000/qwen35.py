@@ -18,6 +18,8 @@
 
 from __future__ import annotations
 
+import os
+
 import torch
 from transformers import AutoConfig
 
@@ -27,8 +29,11 @@ from megatron.bridge.training.comm_overlap import CommOverlapConfig
 from megatron.bridge.training.config import ConfigContainer
 from megatron.bridge.training.mixed_precision import bf16_mixed
 
-_QWEN35_9B_BASE = "Qwen/Qwen3.5-9B"
-_QWEN35_35B_A3B_BASE = "Qwen/Qwen3.5-35B-A3B"
+# LOCAL_HF_PATH lets the bw1000 launch scripts point these recipes at an
+# on-disk HF snapshot instead of hitting the hub; falls back to the hub id
+# for ad-hoc/local use where the env var isn't set.
+_QWEN35_9B_BASE = os.getenv("LOCAL_HF_PATH", "Qwen/Qwen3.5-9B")
+_QWEN35_35B_A3B_BASE = os.getenv("LOCAL_HF_PATH", "Qwen/Qwen3.5-35B-A3B")
 
 def qwen35_text_9b_pretrain_8gpu_bw1000_bf16_config() -> ConfigContainer:
     """Return a text-only Qwen3.5-9B pretraining config for eight BW1000 GPUs."""
@@ -58,7 +63,7 @@ def qwen35_text_9b_pretrain_8gpu_bw1000_bf16_config() -> ConfigContainer:
     cfg.model.seq_length = 4096
     cfg.model.init_method_std = 0.02
     cfg.train.global_batch_size = 128
-    cfg.train.micro_batch_size = 2
+    cfg.train.micro_batch_size = 1
 
     cfg.model.transformer_impl = "transformer_engine"
     cfg.model.bias_activation_fusion = True

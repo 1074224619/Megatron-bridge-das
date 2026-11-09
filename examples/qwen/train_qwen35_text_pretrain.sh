@@ -8,10 +8,10 @@ CURRENT_DIR=$( cd $( dirname $0 ) && pwd )
 MEGATRON_PATH=$( dirname $( dirname ${CURRENT_DIR}))
 
 # default env
-PORT="" # Set the SSH port by running /usr/sbin/sshd -p <port> inside the Docker container on each node. For example: /usr/sbin/sshd -p 12345
-export LOCAL_HF_PATH=/path/to/Qwen3.5-35B-A3B
+export LOCAL_HF_PATH=${LOCAL_HF_PATH:-/path/to/Qwen3.5-35B-A3B}
 export NVTE_USE_HIPBLASLT_GROUPEDGEMM=1
 export GPU_MAX_HW_QUEUES=4
+BRIDGE_ENV_SCRIPT="${BRIDGE_ENV_SCRIPT:-${MEGATRON_PATH}/env/env.sh}" # cluster env script (NCCL/IB vars, PYTHONPATH, HCU recipe registration); override with --env BRIDGE_ENV_SCRIPT=<path> to use a different cluster's env.sh
 
 # ===================================== Launch Mode =====================================
 RECIPE=${1:-}
@@ -186,7 +186,7 @@ env_args=(
 case "${MODE}" in
     dryrun)
         source /opt/dtk/env.sh
-        source ${MEGATRON_PATH}/env/env.sh
+        source ${BRIDGE_ENV_SCRIPT}
         python ${MEGATRON_PATH}/run_recipe.py \
             --recipe ${RECIPE} \
             --mode pretrain \
@@ -227,7 +227,7 @@ case "${MODE}" in
 
         if (( NNODES == 1 )); then
             source /opt/dtk/env.sh
-            source ${MEGATRON_PATH}/env/env.sh
+            source ${BRIDGE_ENV_SCRIPT}
             torchrun ${TORCHRUN_ARGS[@]} ${RECIPE_ARGS[@]} 2>&1 | tee "${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log"
         else
             # One mpirun process per node (slots=1); each starts its own torchrun
@@ -250,7 +250,7 @@ case "${MODE}" in
                 ${env_args[@]} \
                 bash -c "
                 source /opt/dtk/env.sh && \
-                source ${MEGATRON_PATH}/env/env.sh && \
+                source ${BRIDGE_ENV_SCRIPT} && \
                 ${REMOTE_CMD}" 2>&1 | tee ${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log
         fi
         echo "======================================"
