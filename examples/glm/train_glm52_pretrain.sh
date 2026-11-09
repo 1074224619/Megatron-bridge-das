@@ -14,7 +14,7 @@ RECIPE=${1:-}
 MODE=${2:-}
 HOSTFILE=${3:-}
 NODES=${4:-}
-PROFILING=""
+PROFILING="" # If you want to profiling, please set this var to torch
 
 RED="\033[31m"
 YELLOW="\033[33m"
@@ -37,7 +37,11 @@ if [[ -z ${RECIPE} ]]; then
 fi
 
 # ===================================== Multi-node Topology =====================================
-GPUS=${GPUS:-8}
+if [[ ${RECIPE} == *bw1300* ]]; then
+    GPUS=${GPUS:-4}
+else
+    GPUS=${GPUS:-8}
+fi
 PORT=${PORT:-12345}
 MASTER_ADDR=127.0.0.1
 MASTER_PORT=29501
@@ -61,6 +65,13 @@ else
         exit 1
     fi
 fi
+
+# One mpirun process per node (slots=1); each starts its own torchrun
+# for that node's GPUs. The remote command is assembled as a string
+# because --node_rank must stay literal until it is evaluated on the
+# remote host, where mpirun sets OMPI_COMM_WORLD_RANK.
+HOSTFILE_SLOTS=${CURRENT_DIR}/hostfile_slots
+grep -ve '^[[:space:]]*$' ${HOSTFILE} | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > ${HOSTFILE_SLOTS}
 WORLD_GPUS=$((NNODES * GPUS))
 
 # ===================================== Data Config =====================================
@@ -92,42 +103,26 @@ OPTIMIZER_CONFIG=(
 )
 
 # ===================================== Parallel Config =====================================
-if [[ $RECIPE == *test* ]];then
-    TP=1
-    PP=2
-    EP=16
-    ETP=1
-    CP=1
+TP=1
+PP=2
+EP=16
+ETP=1
+CP=1
 
-    PARALLEL_CONFIG=(
-        train.exit_interval=30
-        model.tensor_model_parallel_size=${TP}
-        model.pipeline_model_parallel_size=${PP}
-        model.expert_model_parallel_size=${EP}
-        model.expert_tensor_parallel_size=${ETP}
-        model.context_parallel_size=${CP}
-    )
-else
-    TP=1
-    PP=8
-    EP=16
-    ETP=1
-    CP=1
-
-    PARALLEL_CONFIG=(
-        model.tensor_model_parallel_size=${TP}
-        model.pipeline_model_parallel_size=${PP}
-        model.expert_model_parallel_size=${EP}
-        model.expert_tensor_parallel_size=${ETP}
-        model.context_parallel_size=${CP}
-    )
-fi
+PARALLEL_CONFIG=(
+    train.exit_interval=30
+    model.tensor_model_parallel_size=${TP}
+    model.pipeline_model_parallel_size=${PP}
+    model.expert_model_parallel_size=${EP}
+    model.expert_tensor_parallel_size=${ETP}
+    model.context_parallel_size=${CP}
+)
 
 # ===================================== Model Config =====================================
 MODEL_CONFIG=(
     model.seq_length=${SEQ_LENGTH}
     model.sequence_parallel=true
-    model.cross_entropy_loss_fusion=True
+    model.cross_entropy_loss_fusion=true
     model.cross_entropy_fusion_impl=te
     model.moe_router_fusion=true
     model.moe_permute_fusion=true
@@ -195,6 +190,7 @@ env_args=(
     -x MASTER_ADDR=${MASTER_ADDR}
     -x MASTER_PORT=${MASTER_PORT}
 )
+SAVE_LOG=${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log
 
 case "${MODE}" in
     dryrun)
@@ -239,15 +235,8 @@ case "${MODE}" in
 
         if (( NNODES == 1 )); then
             source ${MEGATRON_PATH}/env/env.sh
-            torchrun ${TORCHRUN_ARGS[@]} ${RECIPE_ARGS[@]} 2>&1 | tee "${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log"
+            torchrun "${TORCHRUN_ARGS[@]}" "${RECIPE_ARGS[@]}" 2>&1 | tee "${SAVE_LOG}"
         else
-            # One mpirun process per node (slots=1); each starts its own torchrun
-            # for that node's GPUs. The remote command is assembled as a string
-            # because --node_rank must stay literal until it is evaluated on the
-            # remote host, where mpirun sets OMPI_COMM_WORLD_RANK.
-            HOSTFILE_SLOTS="${CURRENT_DIR}/hostfile_slots"
-            grep -ve '^[[:space:]]*$' ${HOSTFILE} | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > ${HOSTFILE_SLOTS}
-
             TORCHRUN_QUOTED="$(printf '%q ' "${TORCHRUN_ARGS[@]}")"
             RECIPE_QUOTED="$(printf '%q ' "${RECIPE_ARGS[@]}")"
             REMOTE_CMD="torchrun --node_rank=\${OMPI_COMM_WORLD_RANK} ${TORCHRUN_QUOTED} ${RECIPE_QUOTED}"
@@ -261,7 +250,7 @@ case "${MODE}" in
                 bash -c "
                 source /opt/dtk/env.sh && \
                 source ${MEGATRON_PATH}/env/env.sh && \
-                ${REMOTE_CMD}" 2>&1 | tee ${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log
+                ${REMOTE_CMD}" 2>&1 | tee ${SAVE_LOG}
         fi
         echo "======================================"
         echo "Training finished. Checkpoints: ${SAVE_DIR}"
