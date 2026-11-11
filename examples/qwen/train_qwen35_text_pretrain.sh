@@ -27,8 +27,49 @@ RESET="\033[0m"
 
 # Discover supported recipes from the qwen35 module
 SUPPORTED_RECIPES=(
+    qwen35_text_0_8b_pretrain_8gpu_bw1000_bf16_config
+    qwen35_text_2b_pretrain_8gpu_bw1000_bf16_config
+    qwen35_text_4b_pretrain_8gpu_bw1000_bf16_config
+    qwen35_text_9b_pretrain_8gpu_bw1000_bf16_config
+    qwen35_text_27b_pretrain_8gpu_bw1000_bf16_config
     qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config
+    qwen35_text_122b_a10b_pretrain_32gpu_bw1000_bf16_config
+    qwen35_text_397b_a17b_pretrain_64gpu_bw1000_bf16_config
+    qwen35_text_0_8b_pretrain_8gpu_bw1100_bf16_config
+    qwen35_text_2b_pretrain_8gpu_bw1100_bf16_config
+    qwen35_text_4b_pretrain_8gpu_bw1100_bf16_config
+    qwen35_text_9b_pretrain_8gpu_bw1100_bf16_config
+    qwen35_text_27b_pretrain_8gpu_bw1100_bf16_config
+    qwen35_text_35b_a3b_pretrain_16gpu_bw1100_bf16_config
+    qwen35_text_122b_a10b_pretrain_32gpu_bw1100_bf16_config
+    qwen35_text_397b_a17b_pretrain_64gpu_bw1100_bf16_config
 )
+
+# Per-recipe topology from qwen35.py's _QWEN35_TEXT_SPECS: dense sizes keep
+# TP*PP within one 8-GPU node (EP must stay 1 or Megatron rejects the config),
+# MoE sizes spread experts over EP. bw1100 (144G cards) copies bw1000's
+# topology verbatim. All are overridable via the matching env var, so a caller
+# can retune without editing this script.
+recipe_parallel_defaults() {
+    case "$1" in
+        # bw1100 (144G cards) overrides must come before the generic patterns
+        # below, which also match bw1100 recipe names.
+        *_4b_*_bw1100_*)     echo "1 1 1" ;;
+        *_9b_*_bw1100_*)     echo "1 1 1" ;;
+        *_27b_*_bw1100_*)    echo "2 2 1" ;;
+        *_35b_a3b_*_bw1100_*) echo "1 1 8" ;;
+
+        *_0_8b_*)   echo "1 1 1" ;;
+        *_2b_*)     echo "1 1 1" ;;
+        *_4b_*)     echo "2 1 1" ;;
+        *_9b_*)     echo "2 1 1" ;;
+        *_27b_*)    echo "4 2 1" ;;
+        *_35b_a3b_*) echo "1 4 8" ;;
+        *_122b_a10b_*) echo "4 2 4" ;;
+        *_397b_a17b_*) echo "4 4 8" ;;
+        *)          echo "1 1 1" ;;
+    esac
+}
 
 # Validate RECIPE argument
 if [[ -z ${RECIPE} ]]; then
@@ -74,8 +115,13 @@ fi
 # for that node's GPUs. The remote command is assembled as a string
 # because --node_rank must stay literal until it is evaluated on the
 # remote host, where mpirun sets OMPI_COMM_WORLD_RANK.
+# Only the multi-node mpirun branch below uses this file; single-node runs have
+# no hostfile at all, and feeding grep an empty HOSTFILE would make it exit 1
+# and kill the script under `set -euo pipefail`.
 HOSTFILE_SLOTS=${CURRENT_DIR}/hostfile_slots
-grep -ve '^[[:space:]]*$' ${HOSTFILE} | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > ${HOSTFILE_SLOTS}
+if [[ -n ${HOSTFILE} ]]; then
+    grep -ve '^[[:space:]]*$' ${HOSTFILE} | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > ${HOSTFILE_SLOTS}
+fi
 WORLD_GPUS=$((NNODES * GPUS))
 
 # ===================================== Data Config =====================================
@@ -105,9 +151,10 @@ OPTIMIZER_CONFIG=(
 )
 
 # ===================================== Parallel Config =====================================
-TP="${TENSOR_PARALLEL:-1}"
-PP="${PIPELINE_PARALLEL:-4}"
-EP="${EXPERT_PARALLEL:-8}"
+read -r TP_DEFAULT PP_DEFAULT EP_DEFAULT <<< "$(recipe_parallel_defaults "${RECIPE}")"
+TP="${TENSOR_PARALLEL:-${TP_DEFAULT}}"
+PP="${PIPELINE_PARALLEL:-${PP_DEFAULT}}"
+EP="${EXPERT_PARALLEL:-${EP_DEFAULT}}"
 ETP="${EXPERT_TENSOR_PARALLEL:-1}"
 CP="${CONTEXT_PARALLEL:-1}"
 
@@ -163,7 +210,7 @@ PROFILING_CONFIG=(
 # ===================================== Summary =====================================
 mkdir -p "${SAVE_DIR}/train_logs"
 echo "======================================"
-echo -e "${YELLOW}Qwen3.5-35B-A3B text-only pretrain${RESET}"
+echo -e "${YELLOW}Qwen3.5 text-only pretrain${RESET}"
 echo "======================================"
 echo "Mode:        ${MODE}"
 echo "Profiling:   ${PROFILING:-off}"
@@ -237,6 +284,7 @@ case "${MODE}" in
         fi
 
         if (( NNODES == 1 )); then
+            source /opt/dtk/env.sh
             source ${BRIDGE_ENV_SCRIPT}
             torchrun "${TORCHRUN_ARGS[@]}" "${RECIPE_ARGS[@]}" 2>&1 | tee "${SAVE_LOG}"
         else
