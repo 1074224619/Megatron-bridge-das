@@ -240,9 +240,7 @@ OPTIMIZER_CONFIG=(
 
 # ===================================== Parallel Config =====================================
 # Defaults mirror the recipe's own topology (qwen35_vl.py's spec table), which
-# is identical for bw1000 and bw1100. Sequence parallelism requires tensor
-# parallelism, so 4B/9B use TP2 rather than the TP1/PP2 that
-# ModelParallelConfig rejects. Every value stays overridable from the env.
+# is identical for bw1000 and bw1100. 
 case "${SIZE}" in
     2b)        TP_DEFAULT=1; PP_DEFAULT=1; SP_DEFAULT=false; EP_DEFAULT=1 ;;
     4b)        TP_DEFAULT=1; PP_DEFAULT=1; SP_DEFAULT=false;  EP_DEFAULT=1 ;;
