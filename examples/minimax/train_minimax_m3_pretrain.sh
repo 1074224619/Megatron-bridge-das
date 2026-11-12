@@ -21,12 +21,12 @@ RED="\033[31m"
 YELLOW="\033[33m"
 RESET="\033[0m"
 
-# Discover supported recipes from the deepseek module
+# Keep one test config per platform: the 10-layer BW1100 config (actually
+# run) and the BW1000 2-layer test config, so BW1000 still has a case. The
+# BW1100 full-parameter and 2-layer test configs are not exposed here.
 SUPPORTED_RECIPES=(
-    minimax_m3_pretrain_16gpu_bw1000_bf16_test_config
-    minimax_m3_pretrain_16gpu_bw1100_bf16_test_config
-    minimax_m3_pretrain_16gpu_bw1100_bf16_config
     minimax_m3_10layer_pretrain_16gpu_bw1100_bf16_test_config
+    minimax_m3_pretrain_16gpu_bw1000_bf16_test_config
 )
 
 # Validate RECIPE argument
@@ -106,21 +106,17 @@ OPTIMIZER_CONFIG=(
 )
 
 # ===================================== Parallel Config =====================================
-# Per-recipe parallelism defaults (TP PP EP); override from the environment,
-# e.g. --env EP=16 for the full-model config.
-recipe_parallel_defaults() {
-    case "$1" in
-        minimax_m3_10layer_*) echo "1 2 8" ;;
-        *)                    echo "1 1 4" ;;
-    esac
-}
-ENV_TP=${TP:-}
-ENV_PP=${PP:-}
-ENV_EP=${EP:-}
-read -r TP PP EP <<< "$(recipe_parallel_defaults "$1")"
-TP=${ENV_TP:-${TP}}
-PP=${ENV_PP:-${PP}}
-EP=${ENV_EP:-${EP}}
+# 10-layer BW1100 uses TP1/PP2/EP8; the BW1000 test config keeps the
+# launcher's original TP1/PP1/EP4. TP/PP/EP stay overridable from the
+# environment.
+case "${RECIPE}" in
+    minimax_m3_10layer_*) TP_DEFAULT=1; PP_DEFAULT=2; EP_DEFAULT=8 ;;
+    *_bw1000_*)           TP_DEFAULT=1; PP_DEFAULT=1; EP_DEFAULT=4 ;;
+    *)  echo -e "${RED}ERROR: no parallel defaults for recipe '${RECIPE}'.${RESET}"; exit 1 ;;
+esac
+TP=${TP:-${TP_DEFAULT}}
+PP=${PP:-${PP_DEFAULT}}
+EP=${EP:-${EP_DEFAULT}}
 ETP=${ETP:-1}
 CP=${CP:-1}
 GLOBAL_BATCH_SIZE=256

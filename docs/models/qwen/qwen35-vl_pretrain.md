@@ -10,29 +10,7 @@ Qwen3.5-VL 多模态预训练（pretrain）性能测试，覆盖 dense 和 MoE �
 
 所有 recipe 都不加载预训练权重，只测性能。
 
-recipe 放在 `hcu_megatron` patch 层里。`env/env.sh` 每次启动时会把 patch 层的
-`recipes/__init__.py` 复制到上游目录，runner 靠这个解析 recipe 名字；仓库里
-`3rdparty/` 下的文件不会被修改。
-
-- Recipes：[hcu_megatron_bridge/src/hcu_megatron/bridge/recipes/qwen/bw1100/qwen35_vl.py](../../../hcu_megatron_bridge/src/hcu_megatron/bridge/recipes/qwen/bw1100/qwen35_vl.py)
-- 注册入口：[hcu_megatron_bridge/src/hcu_megatron/bridge/recipes/__init__.py](../../../hcu_megatron_bridge/src/hcu_megatron/bridge/recipes/__init__.py)
-- 执行入口：[run_recipe.py](../../../run_recipe.py)
-- Launcher：[examples/qwen/train_qwen35_vl_pretrain.sh](../../../examples/qwen/train_qwen35_vl_pretrain.sh)
-
 ## Supported
-
-`节点数` 是 recipe 名字里标称的部署规模，由 TP/PP/EP 的最小几何规模决定。
-BW1000 与 BW1100 的拓扑一致（144G 卡尚未针对 VL 单独调参）。
-
-| 模型 | 类型 | TP | PP | EP | SP | 序列长度 | 节点 | 卡数 |
-|---|---|---:|---:|---:|---|---:|---:|---:|
-| 2B | dense | 1 | 1 | 1 | No | 4096 | 1 | 8 |
-| 4B | dense | 2 | 1 | 1 | Yes | 4096 | 1 | 8 |
-| 9B | dense | 2 | 2 | 1 | Yes | 2048 | 1 | 8 |
-| 27B | dense | 4 | 2 | 1 | Yes | 4096 | 1 | 8 |
-| 35B-A3B | MoE | 1 | 2 | 8 | No | 4096 | 2 | 16 |
-| 122B-A10B | MoE | 4 | 2 | 4 | Yes | 4096 | 1 | 8 |
-| 397B-A17B | MoE | 4 | 4 | 8 | Yes | 4096 | 4 | 32 |
 
 对应的 recipe 名（以 BW1100 为例）：
 
@@ -43,28 +21,8 @@ BW1000 与 BW1100 的拓扑一致（144G 卡尚未针对 VL 单独调参）。
 | 9B | `qwen35_vl_9b_pretrain_8gpu_bw1100_bf16_config` | `qwen35_vl_9b_pretrain_8gpu_bw1100_bf16_mock_config` |
 | 27B | `qwen35_vl_27b_pretrain_8gpu_bw1100_bf16_config` | `qwen35_vl_27b_pretrain_8gpu_bw1100_bf16_mock_config` |
 | 35B-A3B | `qwen35_vl_35b_a3b_pretrain_16gpu_bw1100_bf16_config` | `qwen35_vl_35b_a3b_pretrain_16gpu_bw1100_bf16_mock_config` |
-| 122B-A10B | `qwen35_vl_122b_a10b_pretrain_8gpu_bw1100_bf16_config` | `qwen35_vl_122b_a10b_pretrain_8gpu_bw1100_bf16_mock_config` |
-| 397B-A17B | `qwen35_vl_397b_a17b_pretrain_32gpu_bw1100_bf16_config` | `qwen35_vl_397b_a17b_pretrain_32gpu_bw1100_bf16_mock_config` |
 
-把名字里的 `bw1100` 换成 `bw1000` 就是 BW1000 平台的 recipe，拓扑完全相同。
-
-并行取值说明：
-
-- 序列并行（SP）要求 TP > 1，所以 4B / 9B / 27B / 122B / 397B 用 TP2 或 TP4，
-  而 35B-A3B 是 TP1 拓扑，SP 必须关掉。
-- dense 模型的 EP 恒为 1；MoE 模型靠 EP 把专家摊到多卡。
-- TP 必须整除 attention head 数，PP 必须整除层数，ETP×EP×PP 必须整除总卡数。
-
-架构参数（层数、hidden size、head 数等）由 `AutoBridge` 从模型自己的
-`config.json` 读取，recipe 里刻意不重复声明，避免和权重对不上。上表的
-`序列长度` 是训练长度，不是模型的最大位置数。
-
-所有 recipe 都是 BF16 + Transformer Engine，micro/global batch size 1/32，
-50 步，Adam（betas `0.9/0.95`），weight decay `0.1`，cosine 学习率
-`3e-5 → 3e-6`，warmup 1 步。评估关闭（`validation.eval_iters=0`），因为都是
-短程 bring-up。三个 tower 全部参与训练、没有冻结，这点和上游对齐阶段的
-recipe 不同。
-
+把名字里的 `bw1100` 换成 `bw1000` 就是 BW1000 平台的 recipe
 
 ## 1、环境准备
 
