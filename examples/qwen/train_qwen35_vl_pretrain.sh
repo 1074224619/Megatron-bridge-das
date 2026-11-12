@@ -66,10 +66,6 @@ SUPPORTED_RECIPES=(
     qwen35_vl_27b_pretrain_8gpu_bw1100_bf16_mock_config
     qwen35_vl_35b_a3b_pretrain_16gpu_bw1100_bf16_config
     qwen35_vl_35b_a3b_pretrain_16gpu_bw1100_bf16_mock_config
-    qwen35_vl_122b_a10b_pretrain_8gpu_bw1100_bf16_config
-    qwen35_vl_122b_a10b_pretrain_8gpu_bw1100_bf16_mock_config
-    qwen35_vl_397b_a17b_pretrain_32gpu_bw1100_bf16_config
-    qwen35_vl_397b_a17b_pretrain_32gpu_bw1100_bf16_mock_config
     qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config
     qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_mock_config
     qwen35_vl_4b_pretrain_8gpu_bw1000_bf16_config
@@ -80,10 +76,6 @@ SUPPORTED_RECIPES=(
     qwen35_vl_27b_pretrain_8gpu_bw1000_bf16_mock_config
     qwen35_vl_35b_a3b_pretrain_16gpu_bw1000_bf16_config
     qwen35_vl_35b_a3b_pretrain_16gpu_bw1000_bf16_mock_config
-    qwen35_vl_122b_a10b_pretrain_8gpu_bw1000_bf16_config
-    qwen35_vl_122b_a10b_pretrain_8gpu_bw1000_bf16_mock_config
-    qwen35_vl_397b_a17b_pretrain_32gpu_bw1000_bf16_config
-    qwen35_vl_397b_a17b_pretrain_32gpu_bw1000_bf16_mock_config
 )
 
 # Validate RECIPE argument
@@ -114,9 +106,9 @@ esac
 
 # Size, platform and dataset backend are carried by the recipe name itself:
 #   qwen35_vl_<size-slug>_pretrain_<N>gpu_<platform>_bf16[_mock]_config
-# The slug is lower-case and may carry an MoE suffix (35b_a3b, 122b_a10b,
-# 397b_a17b), so it is matched up to the "_pretrain_" separator rather than a
-# bare "<digits>b" pattern.
+# The slug is lower-case and may carry an MoE suffix (35b_a3b), so it is
+# matched up to the "_pretrain_" separator rather than a bare "<digits>b"
+# pattern.
 SIZE=$(echo "${RECIPE}" | sed -n 's/^qwen35_vl_\([0-9][0-9a-z_]*[0-9a-z]\)_pretrain_.*/\1/p')
 if [[ -z ${SIZE} ]]; then
     echo -e "${RED}ERROR: cannot parse model size from recipe '${RECIPE}'.${RESET}"
@@ -248,8 +240,6 @@ case "${SIZE}" in
     27b)       TP_DEFAULT=2; PP_DEFAULT=2; SP_DEFAULT=true;  EP_DEFAULT=1 ;;
     # SP requires TP>1, so the TP1 MoE topology keeps it off.
     35b_a3b)   TP_DEFAULT=1; PP_DEFAULT=2; SP_DEFAULT=false; EP_DEFAULT=8 ;;
-    122b_a10b) TP_DEFAULT=4; PP_DEFAULT=2; SP_DEFAULT=true;  EP_DEFAULT=4 ;;
-    397b_a17b) TP_DEFAULT=4; PP_DEFAULT=4; SP_DEFAULT=true;  EP_DEFAULT=8 ;;
     *)  echo -e "${RED}ERROR: unknown model size '${SIZE}' in ${RECIPE}.${RESET}"; exit 1 ;;
 esac
 TP=${TENSOR_PARALLEL:-${TP_DEFAULT}}

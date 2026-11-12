@@ -33,43 +33,13 @@ SUPPORTED_RECIPES=(
     qwen35_text_9b_pretrain_8gpu_bw1000_bf16_config
     qwen35_text_27b_pretrain_8gpu_bw1000_bf16_config
     qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config
-    qwen35_text_122b_a10b_pretrain_32gpu_bw1000_bf16_config
-    qwen35_text_397b_a17b_pretrain_64gpu_bw1000_bf16_config
     qwen35_text_0_8b_pretrain_8gpu_bw1100_bf16_config
     qwen35_text_2b_pretrain_8gpu_bw1100_bf16_config
     qwen35_text_4b_pretrain_8gpu_bw1100_bf16_config
     qwen35_text_9b_pretrain_8gpu_bw1100_bf16_config
     qwen35_text_27b_pretrain_8gpu_bw1100_bf16_config
     qwen35_text_35b_a3b_pretrain_16gpu_bw1100_bf16_config
-    qwen35_text_122b_a10b_pretrain_32gpu_bw1100_bf16_config
-    qwen35_text_397b_a17b_pretrain_64gpu_bw1100_bf16_config
 )
-
-# Per-recipe topology from qwen35.py's _QWEN35_TEXT_SPECS: dense sizes keep
-# TP*PP within one 8-GPU node (EP must stay 1 or Megatron rejects the config),
-# MoE sizes spread experts over EP. bw1100 (144G cards) copies bw1000's
-# topology verbatim. All are overridable via the matching env var, so a caller
-# can retune without editing this script.
-recipe_parallel_defaults() {
-    case "$1" in
-        # bw1100 (144G cards) overrides must come before the generic patterns
-        # below, which also match bw1100 recipe names.
-        *_4b_*_bw1100_*)     echo "1 1 1" ;;
-        *_9b_*_bw1100_*)     echo "1 1 1" ;;
-        *_27b_*_bw1100_*)    echo "2 2 1" ;;
-        *_35b_a3b_*_bw1100_*) echo "1 1 8" ;;
-
-        *_0_8b_*)   echo "1 1 1" ;;
-        *_2b_*)     echo "1 1 1" ;;
-        *_4b_*)     echo "2 1 1" ;;
-        *_9b_*)     echo "2 1 1" ;;
-        *_27b_*)    echo "4 2 1" ;;
-        *_35b_a3b_*) echo "1 4 8" ;;
-        *_122b_a10b_*) echo "4 2 4" ;;
-        *_397b_a17b_*) echo "4 4 8" ;;
-        *)          echo "1 1 1" ;;
-    esac
-}
 
 # Validate RECIPE argument
 if [[ -z ${RECIPE} ]]; then
@@ -151,7 +121,32 @@ OPTIMIZER_CONFIG=(
 )
 
 # ===================================== Parallel Config =====================================
-read -r TP_DEFAULT PP_DEFAULT EP_DEFAULT <<< "$(recipe_parallel_defaults "${RECIPE}")"
+# Parse the size and platform from the recipe name:
+#   qwen35_text_<size-slug>_pretrain_<N>gpu_<platform>_bf16_config
+SIZE=$(echo "${RECIPE}" | sed -n 's/^qwen35_text_\([0-9][0-9a-z_]*[0-9a-z]\)_pretrain_.*/\1/p')
+PLATFORM=$(echo "${RECIPE}" | sed -n 's/^.*_\(bw[0-9]\{4\}\)_bf16_config$/\1/p')
+if [[ -z ${SIZE} || -z ${PLATFORM} ]]; then
+    echo -e "${RED}ERROR: cannot parse size/platform from recipe '${RECIPE}'.${RESET}"
+    exit 1
+fi
+
+# Per-size defaults; the 144 GB bw1100 cards fit narrower TP/PP than bw1000
+# for the same model. Every value stays overridable from the environment
+# (TENSOR_PARALLEL / PIPELINE_PARALLEL / EXPERT_PARALLEL).
+case "${SIZE}" in
+    0_8b|2b)  TP_DEFAULT=1; PP_DEFAULT=1; EP_DEFAULT=1 ;;
+    4b|9b)    TP_DEFAULT=2; PP_DEFAULT=1; EP_DEFAULT=1 ;;
+    27b)      TP_DEFAULT=4; PP_DEFAULT=2; EP_DEFAULT=1 ;;
+    35b_a3b)  TP_DEFAULT=1; PP_DEFAULT=4; EP_DEFAULT=8 ;;
+    *)  echo -e "${RED}ERROR: unknown model size '${SIZE}' in ${RECIPE}.${RESET}"; exit 1 ;;
+esac
+if [[ ${PLATFORM} == bw1100 ]]; then
+    case "${SIZE}" in
+        4b|9b)   TP_DEFAULT=1 ;;
+        27b)     TP_DEFAULT=2 ;;
+        35b_a3b) PP_DEFAULT=1 ;;
+    esac
+fi
 TP="${TENSOR_PARALLEL:-${TP_DEFAULT}}"
 PP="${PIPELINE_PARALLEL:-${PP_DEFAULT}}"
 EP="${EXPERT_PARALLEL:-${EP_DEFAULT}}"
