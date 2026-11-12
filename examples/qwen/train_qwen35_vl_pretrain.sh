@@ -179,7 +179,7 @@ fi
 # and kill the script under `set -euo pipefail`.
 HOSTFILE_SLOTS="${CURRENT_DIR}/hostfile_slots"
 if [[ -n ${HOSTFILE} ]]; then
-    grep -ve '^[[:space:]]*$' ${HOSTFILE} | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > ${HOSTFILE_SLOTS}
+    grep -ve '^[[:space:]]*$' "${HOSTFILE}" | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > "${HOSTFILE_SLOTS}"
 fi
 
 # ===================================== Model and Data Paths =====================================
@@ -266,8 +266,8 @@ PARALLEL_CONFIG=(
 )
 if (( EP > 1 )); then
     PARALLEL_CONFIG+=(
-        model.expert_model_parallel_size=${EP}
-        model.expert_tensor_parallel_size=${ETP}
+        model.expert_model_parallel_size="${EP}"
+        model.expert_tensor_parallel_size="${ETP}"
     )
 fi
 
@@ -409,15 +409,17 @@ env_args=(
     -x MOCK_RANDOM_SEED
     -x MOCK_IMAGE_WIDTH
     -x MOCK_IMAGE_HEIGHT
-    -x MASTER_ADDR=${MASTER_ADDR}
-    -x MASTER_PORT=${MASTER_PORT}
+    -x MASTER_ADDR="${MASTER_ADDR}"
+    -x MASTER_PORT="${MASTER_PORT}"
 )
 SAVE_LOG=${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log
 
 case "${MODE}" in
     dryrun)
+        # shellcheck source=/dev/null
         source /opt/dtk/env.sh
-        source ${BRIDGE_ENV_SCRIPT}
+        # shellcheck source=/dev/null
+        source "${BRIDGE_ENV_SCRIPT}"
         if [[ -n ${EXTRA_PYTHONPATH} ]]; then
             export PYTHONPATH="${PYTHONPATH}:${EXTRA_PYTHONPATH}"
         fi
@@ -436,8 +438,10 @@ case "${MODE}" in
         )
 
         if (( NNODES == 1 )); then
+            # shellcheck source=/dev/null
             source /opt/dtk/env.sh
-            source ${BRIDGE_ENV_SCRIPT}
+            # shellcheck source=/dev/null
+            source "${BRIDGE_ENV_SCRIPT}"
             if [[ -n ${EXTRA_PYTHONPATH} ]]; then
                 export PYTHONPATH="${PYTHONPATH}:${EXTRA_PYTHONPATH}"
             fi
@@ -463,7 +467,7 @@ case "${MODE}" in
                 --bind-to none \
                 --mca plm_rsh_no_tree_spawn 1 \
                 --mca plm_rsh_args "-p ${PORT}" \
-                ${env_args[@]} \
+                "${env_args[@]}" \
                 bash -c "
                 ${REMOTE_PREFIX} && \
                 ${REMOTE_CMD}" 2>&1 | tee "${SAVE_LOG}"

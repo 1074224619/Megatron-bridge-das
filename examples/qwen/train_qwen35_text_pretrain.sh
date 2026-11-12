@@ -120,7 +120,7 @@ fi
 # and kill the script under `set -euo pipefail`.
 HOSTFILE_SLOTS=${CURRENT_DIR}/hostfile_slots
 if [[ -n ${HOSTFILE} ]]; then
-    grep -ve '^[[:space:]]*$' ${HOSTFILE} | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > ${HOSTFILE_SLOTS}
+    grep -ve '^[[:space:]]*$' "${HOSTFILE}" | sed -n "1,${NNODES}p" | awk '{print $1" slots=1"}' > "${HOSTFILE_SLOTS}"
 fi
 WORLD_GPUS=$((NNODES * GPUS))
 
@@ -243,8 +243,10 @@ SAVE_LOG=${SAVE_DIR}/train_logs/mpi_$(date +%F-%H%M).log
 
 case "${MODE}" in
     dryrun)
+        # shellcheck source=/dev/null
         source /opt/dtk/env.sh
-        source ${BRIDGE_ENV_SCRIPT}
+        # shellcheck source=/dev/null
+        source "${BRIDGE_ENV_SCRIPT}"
         python ${MEGATRON_PATH}/run_recipe.py \
             --recipe ${RECIPE} \
             --mode pretrain \
@@ -284,8 +286,10 @@ case "${MODE}" in
         fi
 
         if (( NNODES == 1 )); then
+            # shellcheck source=/dev/null
             source /opt/dtk/env.sh
-            source ${BRIDGE_ENV_SCRIPT}
+            # shellcheck source=/dev/null
+            source "${BRIDGE_ENV_SCRIPT}"
             torchrun "${TORCHRUN_ARGS[@]}" "${RECIPE_ARGS[@]}" 2>&1 | tee "${SAVE_LOG}"
         else
             TORCHRUN_QUOTED="$(printf '%q ' "${TORCHRUN_ARGS[@]}")"
