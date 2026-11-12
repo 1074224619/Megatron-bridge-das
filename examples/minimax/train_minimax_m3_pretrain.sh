@@ -24,6 +24,9 @@ RESET="\033[0m"
 # Discover supported recipes from the deepseek module
 SUPPORTED_RECIPES=(
     minimax_m3_pretrain_16gpu_bw1000_bf16_test_config
+    minimax_m3_pretrain_16gpu_bw1100_bf16_test_config
+    minimax_m3_pretrain_16gpu_bw1100_bf16_config
+    minimax_m3_10layer_pretrain_16gpu_bw1100_bf16_test_config
 )
 
 # Validate RECIPE argument
@@ -103,11 +106,23 @@ OPTIMIZER_CONFIG=(
 )
 
 # ===================================== Parallel Config =====================================
-TP=1
-PP=1
-EP=4
-ETP=1
-CP=1
+# Per-recipe parallelism defaults (TP PP EP); override from the environment,
+# e.g. --env EP=16 for the full-model config.
+recipe_parallel_defaults() {
+    case "$1" in
+        minimax_m3_10layer_*) echo "1 2 8" ;;
+        *)                    echo "1 1 4" ;;
+    esac
+}
+ENV_TP=${TP:-}
+ENV_PP=${PP:-}
+ENV_EP=${EP:-}
+read -r TP PP EP <<< "$(recipe_parallel_defaults "$1")"
+TP=${ENV_TP:-${TP}}
+PP=${ENV_PP:-${PP}}
+EP=${ENV_EP:-${EP}}
+ETP=${ETP:-1}
+CP=${CP:-1}
 GLOBAL_BATCH_SIZE=256
 
 PARALLEL_CONFIG=(
