@@ -60,8 +60,6 @@ class _Qwen35TextSpec:
     moe: bool
 
 
-# Dense sizes keep TP*PP within one 8-GPU node (0.8B/2B TP1, 4B/9B TP2,
-# 27B TP4*PP2). 35B-A3B and 122B-A10B are MoE and spread experts over EP.
 _QWEN35_TEXT_SPECS = {
     "0.8b": _Qwen35TextSpec(
         size="0.8b", hf_default="Qwen/Qwen3.5-0.8B", world_gpus=8,
