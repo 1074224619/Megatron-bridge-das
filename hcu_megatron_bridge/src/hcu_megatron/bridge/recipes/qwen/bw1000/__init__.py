@@ -16,6 +16,12 @@
 
 """BW1000 recipes for Qwen models."""
 
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen25_vl import (
+    qwen25_vl_32b_sft_16gpu_bw1000_bf16_config,
+    qwen25_vl_3b_sft_8gpu_bw1000_bf16_config,
+    qwen25_vl_72b_sft_32gpu_bw1000_bf16_config,
+    qwen25_vl_7b_sft_8gpu_bw1000_bf16_config,
+)
 from hcu_megatron.bridge.recipes.qwen.bw1000.qwen35 import (
     qwen35_text_0_8b_pretrain_8gpu_bw1000_bf16_config,
     qwen35_text_2b_pretrain_8gpu_bw1000_bf16_config,
@@ -25,6 +31,14 @@ from hcu_megatron.bridge.recipes.qwen.bw1000.qwen35 import (
     qwen35_text_35b_a3b_pretrain_32gpu_bw1000_bf16_config,
     qwen35_text_122b_a10b_pretrain_32gpu_bw1000_bf16_config,
     qwen35_text_397b_a17b_pretrain_64gpu_bw1000_bf16_config,
+)
+from hcu_megatron.bridge.recipes.qwen.bw1000.qwen3_vl import (
+    qwen3_vl_30b_a3b_pretrain_16gpu_bw1000_bf16_mock_config,
+    qwen3_vl_30b_a3b_sft_16gpu_bw1000_bf16_config,
+    qwen3_vl_32b_pretrain_16gpu_bw1000_bf16_mock_config,
+    qwen3_vl_32b_sft_16gpu_bw1000_bf16_config,
+    qwen3_vl_8b_pretrain_8gpu_bw1000_bf16_mock_config,
+    qwen3_vl_8b_sft_8gpu_bw1000_bf16_config,
 )
 from hcu_megatron.bridge.recipes.qwen.bw1000.qwen35_vl import (
     qwen35_vl_2b_pretrain_8gpu_bw1000_bf16_config,
@@ -48,6 +62,16 @@ from hcu_megatron.bridge.recipes.qwen.bw1000.qwen38 import (
 
 
 __all__ = [
+    "qwen25_vl_3b_sft_8gpu_bw1000_bf16_config",
+    "qwen25_vl_7b_sft_8gpu_bw1000_bf16_config",
+    "qwen25_vl_32b_sft_16gpu_bw1000_bf16_config",
+    "qwen25_vl_72b_sft_32gpu_bw1000_bf16_config",
+    "qwen3_vl_8b_pretrain_8gpu_bw1000_bf16_mock_config",
+    "qwen3_vl_8b_sft_8gpu_bw1000_bf16_config",
+    "qwen3_vl_30b_a3b_pretrain_16gpu_bw1000_bf16_mock_config",
+    "qwen3_vl_30b_a3b_sft_16gpu_bw1000_bf16_config",
+    "qwen3_vl_32b_pretrain_16gpu_bw1000_bf16_mock_config",
+    "qwen3_vl_32b_sft_16gpu_bw1000_bf16_config",
     "qwen35_text_0_8b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_text_2b_pretrain_8gpu_bw1000_bf16_config",
     "qwen35_text_4b_pretrain_8gpu_bw1000_bf16_config",
