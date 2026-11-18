@@ -149,13 +149,14 @@ OPTIMIZER_CONFIG=(
 #   EXPERT_TENSOR_PARALLEL / CONTEXT_PARALLEL
 case "${SIZE}" in
     8b)       TP_DEFAULT=1; PP_DEFAULT=1; EP_DEFAULT=1 ;;
-    30b_a3b)  TP_DEFAULT=1; PP_DEFAULT=2; EP_DEFAULT=8 ;;
+    30b_a3b)  TP_DEFAULT=1; PP_DEFAULT=1; EP_DEFAULT=8 ;;
     32b)      TP_DEFAULT=2; PP_DEFAULT=4; EP_DEFAULT=1 ;;
     *)  echo -e "${RED}ERROR: unknown model size '${SIZE}' in ${RECIPE}.${RESET}"; exit 1 ;;
 esac
 if [[ ${PLATFORM} == bw1000 ]]; then
     case "${SIZE}" in
-        8b|30b_a3b) TP_DEFAULT=2 ;;
+        8b)         TP_DEFAULT=2 ;;
+        30b_a3b)    PP_DEFAULT=2 ;;
         32b)        TP_DEFAULT=4 ;;
     esac
 fi
